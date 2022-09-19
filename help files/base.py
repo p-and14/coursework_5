@@ -1,5 +1,6 @@
 from unit import BaseUnit
 
+
 class BaseSingleton(type):
     _instances = {}
 
@@ -15,12 +16,15 @@ class Arena(metaclass=BaseSingleton):
     player = None
     enemy = None
     game_is_running = False
+    battle_result = None
 
     def start_game(self, player: BaseUnit, enemy: BaseUnit):
         # TODO НАЧАЛО ИГРЫ -> None
         # TODO присваиваем экземпляру класса аттрибуты "игрок" и "противник"
         # TODO а также выставляем True для свойства "началась ли игра"
-        pass
+        self.player = player
+        self.enemy = enemy
+        self.game_is_running = True
 
     def _check_players_hp(self):
         # TODO ПРОВЕРКА ЗДОРОВЬЯ ИГРОКА И ВРАГА
@@ -28,7 +32,12 @@ class Arena(metaclass=BaseSingleton):
         # TODO может быть три результата:
         # TODO Игрок проиграл битву, Игрок выиграл битву, Ничья и сохраняем его в аттрибуте (self.battle_result)
         # TODO если Здоровья игроков в порядке то ничего не происходит
-        pass
+        if self.player.hp <= 0 and self.enemy.hp <= 0:
+            self.battle_result = "Ничья"
+        elif self.player.hp <= 0:
+            self.battle_result = "Игрок проиграл битву"
+        elif self.enemy.hp <= 0:
+            self.battle_result = "Игрок выиграл битву"
 
     def _stamina_regeneration(self):
         # TODO регенерация здоровья и стамины для игрока и врага за ход
@@ -38,7 +47,7 @@ class Arena(metaclass=BaseSingleton):
 
     def next_turn(self):
         # TODO СЛЕДУЮЩИЙ ХОД -> return result | return self.enemy.hit(self.player)
-        # TODO срабатывает когда игроп пропускает ход или когда игрок наносит удар.
+        # TODO срабатывает когда игрок пропускает ход или когда игрок наносит удар.
         # TODO создаем поле result и проверяем что вернется в результате функции self._check_players_hp
         # TODO если result -> возвращаем его
         # TODO если же результата пока нет и после завершения хода игра продолжается,
@@ -51,7 +60,9 @@ class Arena(metaclass=BaseSingleton):
         # TODO очищаем синглтон - self._instances = {}
         # TODO останавливаем игру (game_is_running)
         # TODO возвращаем результат
-        pass
+        self._instances = {}
+        self.game_is_running = False
+        return self.battle_result
 
     def player_hit(self):
         # TODO КНОПКА УДАР ИГРОКА -> return result: str
