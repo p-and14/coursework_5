@@ -74,16 +74,13 @@ def hit():
 @app.route("/fight/use-skill")
 def use_skill():
     if arena.game_is_on:
-        if not arena.player.skill_used:
-            result = arena.player.apply_skill(arena.enemy)
-            if arena.check_players_health():
-                result = f"{result} {arena.end_game()}"
-            else:
-                result += f" {arena.enemy.hit(arena.player)}"
-            arena.player.skill_used = True
-            battle_result.append(result)
+        result = arena.player.apply_skill(arena.enemy)
+        if arena.check_players_health():
+            result = f"{result} {arena.end_game()}"
         else:
-            result = "Навык уже использован."
+            result += f" {arena.enemy.hit(arena.player)}"
+        arena.player.skill_used = True
+        battle_result.append(result)
         return render_template("fight.html", heroes=heroes, result=result)
     else:
         return redirect(url_for("end_fight"))

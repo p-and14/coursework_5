@@ -82,6 +82,9 @@ class BaseUnit(ABC):
             self.health_points = 0
 
     def apply_skill(self, target: BaseUnit) -> str:
+        if self.skill_used:
+            return "Навык уже использован"
+        self.skill_used = True
         return self.unit_class.skill().use(self, target)
 
     @abstractmethod
@@ -97,19 +100,18 @@ class PlayerUnit(BaseUnit, ABC):
 
     def hit(self, target: BaseUnit) -> str:
         damage = self._total_damage(target)
-
-        if self.stamina_points >= self.weapon.stamina_per_hit:
-            self.stamina_points -= self.weapon.stamina_per_hit
-            if damage:
-                target.taking_damage(damage)
-                result = f"{self.name}, используя {self.weapon.name}," \
-                         f" пробивает {target.armor.name} соперника и наносит {damage} урона."
-            else:
-                result = f"{self.name}, используя {self.weapon.name}, наносит удар," \
-                         f" но {target.armor.name} соперника его останавливает."
-        else:
-            result = f"{self.name} попытался использовать {self.weapon.name}," \
+        if self.stamina_points <= self.weapon.stamina_per_hit:
+            return f"{self.name} попытался использовать {self.weapon.name}," \
                      f" но у него не хватило выносливости."
+
+        self.stamina_points -= self.weapon.stamina_per_hit
+        if damage:
+            target.taking_damage(damage)
+            result = f"{self.name}, используя {self.weapon.name}," \
+                     f" пробивает {target.armor.name} соперника и наносит {damage} урона."
+        else:
+            result = f"{self.name}, используя {self.weapon.name}, наносит удар," \
+                     f" но {target.armor.name} соперника его останавливает."
 
         return result
 
@@ -121,11 +123,9 @@ class EnemyUnit(BaseUnit, ABC):
                f"weapon: {self.weapon}, armor: {self.armor}"
 
     def hit(self, target: BaseUnit) -> str:
-        if not self.skill_used:
-            use_skill = random.random()
-            if use_skill > 0.8:
-                self.skill_used = True
-                return self.apply_skill(target)
+        if not self.skill_used and self.stamina_points >= self.unit_class.skill().required_stamina \
+                and random.random() < 0.1:
+            return self.apply_skill(target)
 
         if self.stamina_points >= self.weapon.stamina_per_hit:
             damage = self._total_damage(target)
